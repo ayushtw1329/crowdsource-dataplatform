@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const {uploadFile} = require('./uploader');
 const helmet = require('helmet');
 const express = require('express');
@@ -100,7 +100,6 @@ router.get('/getDetails/:language', async function (req, res) {
   try {
     const currentLanguage = req.params.language;
     const allDetails = await getAllDetails(currentLanguage);
-
     res.status(200).send(allDetails);
   } catch (err) {
     console.log(err);

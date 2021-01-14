@@ -33,6 +33,16 @@ const getGenderData = (db, language) => {
   return formatDetailOf(db, language, field.GENDER);
 };
 
+const getMotherTonguesData = (db, language) => {
+  return formatDetailOf(db, language, field.MOTHER_TONGUE);
+};
+
+const getAgeGroupsData = (db, language) => {
+  return formatDetailOf(db, language, field.AGE_GROUP);
+};
+
 module.exports = {
   getGenderData,
+  getMotherTonguesData,
+  getAgeGroupsData,
 };
