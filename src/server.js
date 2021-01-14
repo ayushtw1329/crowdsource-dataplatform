@@ -1,6 +1,6 @@
-// require('dotenv').config();
-const { uploadFile } = require("./uploader");
-const helmet = require('helmet')
+require('dotenv').config();
+const {uploadFile} = require('./uploader');
+const helmet = require('helmet');
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
@@ -11,6 +11,7 @@ const {
   getAllDetails,
   getAllInfo,
 } = require('./dbOperations');
+
 const fs = require('fs');
 const {v4: uuidv4} = require('uuid');
 const compression = require('compression');
@@ -19,10 +20,10 @@ const {
   validateUserInputAndFile,
   validateUserInfo,
 } = require('./middleware/validateUserInputs');
-const Ddos = require('ddos');
-const ddos = new Ddos({ burst: 6, limit: 30 })
-app.use(ddos.express);
-app.enable('trust proxy');
+// const Ddos = require('ddos');
+// const ddos = new Ddos({burst: 6, limit: 30});
+// app.use(ddos.express);
+// app.enable('trust proxy');
 
 // const privateKey = fs.readFileSync('./vakyansh.key', 'utf8');
 // const certificate = fs.readFileSync('./vakyansh_in.crt', 'utf8');
@@ -33,6 +34,18 @@ app.enable('trust proxy');
 //     cert: certificate,
 //     ca: ca
 // };
+
+const knex = require('./knexQueries');
+
+const knexDB = require('knex')({
+  client: 'pg',
+  connection: {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+  },
+});
 
 const randomString = () => {
   return (Math.random() + 1).toString(36).substring(2, 10);
@@ -66,15 +79,15 @@ app.disable('x-powered-by');
 app.use(compression());
 app.use(cookieParser());
 app.use(function (req, res, next) {
-    let cookie = req.cookies.userId;
-    if (cookie === undefined) {
-        res.cookie('userId', uuidv4(), {
-            maxAge: ONE_YEAR,
-            httpOnly: true,
-            secure: true
-        });
-    }
-    next();
+  let cookie = req.cookies.userId;
+  if (cookie === undefined) {
+    res.cookie('userId', uuidv4(), {
+      maxAge: ONE_YEAR,
+      httpOnly: true,
+      secure: true,
+    });
+  }
+  next();
 });
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
@@ -87,6 +100,7 @@ router.get('/getDetails/:language', async function (req, res) {
   try {
     const currentLanguage = req.params.language;
     const allDetails = await getAllDetails(currentLanguage);
+
     res.status(200).send(allDetails);
   } catch (err) {
     console.log(err);
@@ -163,8 +177,8 @@ app.use('/', router);
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}`);
-    console.log('Press Ctrl+C to quit.');
-  });
+  console.log(`App listening on port ${PORT}`);
+  console.log('Press Ctrl+C to quit.');
+});
 
 module.exports = app;

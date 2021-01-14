@@ -1,4 +1,4 @@
-const $ = require('jquery');
+// const $ = require('jquery');
 
 $(document).ready(function () {
   const mobileRegex = /^[6-9]\d{9}$/;
