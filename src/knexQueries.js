@@ -41,8 +41,17 @@ const getAgeGroupsData = (db, language) => {
   return formatDetailOf(db, language, field.AGE_GROUP);
 };
 
+const sentencesCount = (db, userId, userName, language) => {
+  return db(table.SENTENCES)
+    .count('*')
+    .where({userId, userName, language})
+    .whereNot(field.FILE_NAME, null)
+    .then((row) => Promise.resolve(row));
+};
+
 module.exports = {
   getGenderData,
   getMotherTonguesData,
   getAgeGroupsData,
+  sentencesCount,
 };
