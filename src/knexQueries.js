@@ -49,9 +49,28 @@ const sentencesCount = (db, userId, userName, language) => {
     .then((row) => Promise.resolve(row));
 };
 
+const getCountOfTotalSpeakerAndRecordedAudio = (db, language) => {
+  const subQuery = db
+    .count('*')
+    .column({index: 1})
+    .from(table.SENTENCES)
+    .whereNot(field.FILE_NAME, null)
+    .where(field.LANGUAGE, language);
+
+  const allRecord = db(table.SENTENCES)
+    .distinct(field.USER_ID, field.USER_NAME)
+    .from(table.SENTENCES)
+    .whereNot(field.FILE_NAME, null)
+    .where(field.LANGUAGE, language)
+    .as('allRecord');
+
+  return db.count('*').column({index: 0}).from(allRecord).unionAll(subQuery);
+};
+
 module.exports = {
   getGenderData,
   getMotherTonguesData,
   getAgeGroupsData,
   sentencesCount,
+  getCountOfTotalSpeakerAndRecordedAudio,
 };
