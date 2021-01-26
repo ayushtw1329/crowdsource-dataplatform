@@ -1,7 +1,18 @@
-const { MAX_SIZE, VALID_FILE_TYPE, MOBILE_REGEX, EMAIL_REGEX, GENDER, AGE_GROUP, MOTHER_TONGUE, MAX_LENGTH } = require("../constants")
+const {
+    MAX_SIZE,
+    VALID_FILE_TYPE,
+    MOBILE_REGEX,
+    EMAIL_REGEX,
+    GENDER,
+    AGE_GROUP,
+    MOTHER_TONGUE,
+    MAX_LENGTH
+} = require("../constants")
 
 
-const convertIntoMB = (fileSizeInByte) => { return Math.round(fileSizeInByte / (1024 * 1000)); }
+const convertIntoMB = (fileSizeInByte) => {
+    return Math.round(fileSizeInByte / (1024 * 1000));
+}
 
 const validateUserInputAndFile = function (req, res, next) {
     const speakerDetails = req.body.speakerDetails;
@@ -12,9 +23,11 @@ const validateUserInputAndFile = function (req, res, next) {
     const gender = speakerDetailsJson.gender;
     const ageGroup = speakerDetailsJson.age;
     const motherTongue = speakerDetailsJson.motherTongue;
-    if (fileSizeInMB > MAX_SIZE || file.mimetype != VALID_FILE_TYPE
-        || !GENDER.includes(gender) || !MOTHER_TONGUE.includes(motherTongue) ||
-        userName.length > MAX_LENGTH || MOBILE_REGEX.test(userName) || EMAIL_REGEX.test(userName) || !AGE_GROUP.includes(ageGroup)) {
+    const isValidReqParams = fileSizeInMB > MAX_SIZE || file.mimetype != VALID_FILE_TYPE
+    || !GENDER.includes(gender) || !MOTHER_TONGUE.includes(motherTongue) ||
+    userName.length > MAX_LENGTH || MOBILE_REGEX.test(userName) || EMAIL_REGEX.test(userName) || !AGE_GROUP.includes(ageGroup);
+
+    if (isValidReqParams) {
         return res.status(400).send("Bad request");
     }
     next()
@@ -29,5 +42,4 @@ const validateUserInfo = function (req, res, next) {
     next()
 }
 
-
-module.exports = { validateUserInputAndFile, validateUserInfo }
+module.exports = {validateUserInputAndFile, validateUserInfo, convertIntoMB}

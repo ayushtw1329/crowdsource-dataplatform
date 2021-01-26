@@ -7,9 +7,8 @@
     "start": "node src/server.js",
     "watch": "nodemon src/server.js",
     "start-cluster": "pm2 start src/server.js -i 2",
-    "test": "ENCRYPTION_KEY=CjksSAhoncsuosuy68sbLd35KkcHrSuwKJerEFCEWof= mocha",
-    "gulp": "gulp",
-    "jest": "jest"
+    "test": "ENCRYPTION_KEY=CjksSAhoncsuosuy68sbLd35KkcHrSuwKJerEFCEWof= jest",
+    "gulp": "gulp"
   },
   "repository": {
     "type": "git",
@@ -23,7 +22,6 @@
   "homepage": "https://github.com/ekstep2/ektep-crowdsource-platform#readme",
   "dependencies": {
     "@google-cloud/storage": "^4.7.0",
-    "chai": "^4.2.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "crypto-js": "^4.0.0",
@@ -40,6 +38,7 @@
     "pg": "^8.5.1",
     "pg-promise": "^10.5.2",
     "pm2": "^4.4.0",
+    "regenerator-runtime": "^0.13.7",
     "sinon": "^9.0.2",
     "supertest": "^4.0.2",
     "uuid": "^7.0.3"
@@ -48,12 +47,21 @@
     "node": "12.16.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.12.11",
+    "babelify": "^10.0.0",
     "del": "^5.1.0",
+    "fetch-mock": "^9.11.0",
     "gulp": "^4.0.2",
+    "gulp-browserify": "^0.5.1",
     "gulp-clean-css": "^4.3.0",
     "gulp-htmlmin": "^5.0.1",
     "gulp-imagemin": "^7.1.0",
     "gulp-minify": "^3.1.0",
     "nodemon": "^2.0.3"
+  },
+  "jest": {
+    "setupFiles": [
+      "<rootDir>/test-env.js"
+    ]
   }
 }

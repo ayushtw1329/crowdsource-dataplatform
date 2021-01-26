@@ -1,7 +1,6 @@
-<<<<<<< HEAD
 // require('dotenv').config();
-const {uploadFile} = require('./uploader');
-const helmet = require('helmet');
+const { uploadFile } = require("./uploader");
+const helmet = require('helmet')
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
@@ -12,7 +11,6 @@ const {
   getAllDetails,
   getAllInfo,
 } = require('./dbOperations');
-
 const fs = require('fs');
 const {v4: uuidv4} = require('uuid');
 const compression = require('compression');
@@ -22,7 +20,7 @@ const {
   validateUserInfo,
 } = require('./middleware/validateUserInputs');
 // const Ddos = require('ddos');
-// const ddos = new Ddos({burst: 6, limit: 30});
+// const ddos = new Ddos({ burst: 6, limit: 30 })
 // app.use(ddos.express);
 // app.enable('trust proxy');
 
@@ -35,18 +33,6 @@ const {
 //     cert: certificate,
 //     ca: ca
 // };
-
-const knex = require('./knexQueries');
-
-const knexDB = require('knex')({
-  client: 'pg',
-  connection: {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-  },
-});
 
 const randomString = () => {
   return (Math.random() + 1).toString(36).substring(2, 10);
@@ -80,15 +66,15 @@ app.disable('x-powered-by');
 app.use(compression());
 app.use(cookieParser());
 app.use(function (req, res, next) {
-  let cookie = req.cookies.userId;
-  if (cookie === undefined) {
-    res.cookie('userId', uuidv4(), {
-      maxAge: ONE_YEAR,
-      httpOnly: true,
-      secure: true,
-    });
-  }
-  next();
+    let cookie = req.cookies.userId;
+    if (cookie === undefined) {
+        res.cookie('userId', uuidv4(), {
+            maxAge: ONE_YEAR,
+            // httpOnly: true,
+            // secure: true
+        });
+    }
+    next();
 });
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
@@ -99,8 +85,8 @@ router.get('/', function (req, res) {
 
 router.get('/getDetails/:language', async function (req, res) {
   try {
-    const currentLanguage = req.params.language;
-    const allDetails = await getAllDetails(currentLanguage);
+      const currentLanguage = req.params.language;
+      const allDetails = await getAllDetails(currentLanguage);
     res.status(200).send(allDetails);
   } catch (err) {
     console.log(err);
@@ -124,6 +110,10 @@ router.get('/getAllInfo/:language', async function (req, res) {
   }
 });
 
+router.get('/validator/promp-page', (req, res) => {
+  res.render('validator-promp-page.ejs');
+});
+
 router.get('/about-us', function (req, res) {
   res.render('about-us.ejs');
 });
@@ -136,7 +126,7 @@ router.get('/thank-you', function (req, res) {
 router.get('/record', (req, res) => {
   res.render('record.ejs');
 });
-router.post('/sentences', (req, res) => updateAndGetSentences(req, res));
+router.post('/sentences', (req, res) =>  updateAndGetSentences(req, res));
 router.post('/upload', (req, res) => {
   const file = req.file;
   const sentenceId = req.body.sentenceId;
@@ -173,21 +163,7 @@ router.get('*', (req, res) => {
 });
 
 app.use('/', router);
-=======
-const app = require('./app')
->>>>>>> ce3774dc84606ee5c1eacb415c1e6724d6d155e4
 
-const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-<<<<<<< HEAD
-  console.log(`App listening on port ${PORT}`);
-  console.log('Press Ctrl+C to quit.');
-});
 
 module.exports = app;
-=======
-    console.log(`App listening on port ${PORT}`);
-    console.log('Press Ctrl+C to quit.');
-  });
->>>>>>> ce3774dc84606ee5c1eacb415c1e6724d6d155e4

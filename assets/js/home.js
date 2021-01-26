@@ -1,8 +1,142 @@
-// const $ = require('jquery');
+const {updateGraph, buildGraphs} = require('./draw-chart');
 
-$(document).ready(function () {
+function validateUserName($userName, $userNameError, $tncCheckbox) {
+  const userNameValue = $userName.val().trim();
+  if (testUserName(userNameValue)) {
+    $userName.addClass('is-invalid');
+    $userNameError.removeClass('d-none');
+  } else {
+    $userName.removeClass('is-invalid');
+    $userNameError.addClass('d-none');
+  }
+  $tncCheckbox.trigger('change');
+}
+
+function resetSpeakerDetails() {
+  const age = document.getElementById('age');
+  const motherTongue = document.getElementById('mother-tongue');
+  const userName = document.getElementById('username');
+  const selectedGender = document.querySelector(
+    'input[name = "gender"]:checked'
+  );
+  if (selectedGender) {
+    selectedGender.checked = false;
+  }
+  age.selectedIndex = 0;
+  motherTongue.selectedIndex = 0;
+  userName.value = '';
+}
+
+const testUserName = (val) => {
   const mobileRegex = /^[6-9]\d{9}$/;
   const emailRegex = /^\S+@\S+[\.][0-9a-z]+$/;
+  return mobileRegex.test(val) || emailRegex.test(val);
+};
+
+function setUserNameTooltip($userName) {
+  if ($userName.val().length > 11) {
+    $userName.tooltip('enable');
+    $userName.tooltip('show');
+  } else {
+    $userName.tooltip('disable');
+    $userName.tooltip('hide');
+  }
+}
+
+function updateLanguageInButton(lang) {
+  document.getElementById(
+    'start-record'
+  ).innerText = `START RECORDING IN ${lang.toUpperCase()}`;
+}
+
+function calculateTime(totalSentence) {
+  const totalSeconds = totalSentence * 6;
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingAfterHours = totalSeconds % 3600;
+  const minutes = Math.floor(remainingAfterHours / 60);
+  const seconds = remainingAfterHours % 60;
+  return {hours, minutes, seconds};
+}
+
+const fetchDetail = (language) => {
+  return fetch(`/getDetails/${language}`).then((data) => {
+    if (!data.ok) {
+      throw Error(data.statusText || 'HTTP error');
+    } else {
+      return Promise.resolve(data.json());
+    }
+  });
+};
+
+function updateLanguage(language) {
+  const $speakersData = $('#speaker-data');
+  const $speakersDataLoader = $speakersData.find('#loader1,#loader2');
+  const $speakersDataSpeakerWrapper = $('#speakers-wrapper');
+  const $speakersDataSpeakerValue = $('#speaker-value');
+  const $speakersDataHoursWrapper = $('#hours-wrapper');
+  const $speakersDataHoursValue = $('#hour-value');
+  $speakersDataLoader.removeClass('d-none');
+  $speakersDataHoursWrapper.addClass('d-none');
+  $speakersDataSpeakerWrapper.addClass('d-none');
+
+  fetchDetail(language)
+    .then((data) => {
+      try {
+        const totalSentence = data.find((t) => t.index === 1).count;
+        const {hours, minutes, seconds} = calculateTime(totalSentence);
+        $speakersDataHoursValue.text(`${hours}h ${minutes}m ${seconds}s`);
+        $speakersDataSpeakerValue.text(data.find((t) => t.index === 0).count);
+
+        $speakersDataLoader.addClass('d-none');
+        $speakersDataHoursWrapper.removeClass('d-none');
+        $speakersDataSpeakerWrapper.removeClass('d-none');
+        localStorage.setItem('speakersData', JSON.stringify(data));
+      } catch (error) {
+        console.log(error);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+const setStartRecordBtnToolTipContent = (userName, $startRecordBtnTooltip) => {
+  if (testUserName(userName)) {
+    $startRecordBtnTooltip.attr(
+      'data-original-title',
+      'Please validate any error message before proceeding'
+    );
+  } else {
+    $startRecordBtnTooltip.attr(
+      'data-original-title',
+      'Please agree to the Terms and Conditions before proceeding'
+    );
+  }
+};
+
+const setSpeakerDetails = (speakerDetailsKey, age, motherTongue, $userName) => {
+  const speakerDetailsValue = localStorage.getItem(speakerDetailsKey);
+  if (speakerDetailsValue) {
+    const parsedSpeakerDetails = JSON.parse(speakerDetailsValue);
+    const genderRadio = document.querySelector(
+      'input[name = "gender"][value="' + parsedSpeakerDetails.gender + '"]'
+    );
+    if (genderRadio) {
+      genderRadio.checked = true;
+      genderRadio.previous = true;
+    }
+    age.value = parsedSpeakerDetails.age;
+    motherTongue.value = parsedSpeakerDetails.motherTongue;
+    $userName.val(
+      parsedSpeakerDetails.userName
+        ? parsedSpeakerDetails.userName.trim().substring(0, 12)
+        : ''
+    );
+    validateUserName($userName, $userName.next(), $('#tnc'));
+  }
+};
+
+$(document).ready(function () {
   const speakerDetailsKey = 'speakerDetails';
   const defaultLang = 'Odia';
   const $startRecordBtn = $('#proceed-box');
@@ -15,38 +149,6 @@ $(document).ready(function () {
   const $tncCheckbox = $('#tnc');
   let sentenceLanguage = defaultLang;
 
-  const testUserName = (val) => mobileRegex.test(val) || emailRegex.test(val);
-
-  const setUserNameTooltip = () => {
-    if ($userName.val().length > 11) {
-      $userName.tooltip('enable');
-      $userName.tooltip('show');
-    } else {
-      $userName.tooltip('disable');
-      $userName.tooltip('hide');
-    }
-  };
-
-  const validateUserName = () => {
-    const userNameValue = $userName.val().trim();
-    if (testUserName(userNameValue)) {
-      $userName.addClass('is-invalid');
-      $userNameError.removeClass('d-none');
-    } else {
-      $userName.removeClass('is-invalid');
-      $userNameError.addClass('d-none');
-    }
-    $tncCheckbox.trigger('change');
-    setUserNameTooltip();
-  };
-
-  $userName.tooltip({
-    container: 'body',
-    placement: screen.availWidth > 500 ? 'right' : 'auto',
-    trigger: 'focus',
-  });
-
-  setUserNameTooltip();
   $tncCheckbox.prop('checked', false);
 
   $startRecordBtnTooltip.tooltip({
@@ -54,29 +156,7 @@ $(document).ready(function () {
     placement: screen.availWidth > 500 ? 'right' : 'auto',
   });
 
-  const setSpeakerDetails = () => {
-    const speakerDetailsValue = localStorage.getItem(speakerDetailsKey);
-    if (speakerDetailsValue) {
-      const parsedSpeakerDetails = JSON.parse(speakerDetailsValue);
-      const genderRadio = document.querySelector(
-        'input[name = "gender"][value="' + parsedSpeakerDetails.gender + '"]'
-      );
-      if (genderRadio) {
-        genderRadio.checked = true;
-        genderRadio.previous = true;
-      }
-      age.value = parsedSpeakerDetails.age;
-      motherTongue.value = parsedSpeakerDetails.motherTongue;
-      $userName.val(
-        parsedSpeakerDetails.userName
-          ? parsedSpeakerDetails.userName.trim().substring(0, 12)
-          : ''
-      );
-      validateUserName();
-    }
-  };
-
-  setSpeakerDetails();
+  setSpeakerDetails(speakerDetailsKey, age, motherTongue, $userName);
 
   genderRadios.forEach((element) => {
     element.addEventListener('click', (e) => {
@@ -87,56 +167,49 @@ $(document).ready(function () {
     });
   });
 
-  const setStartRecordBtnToolTipContent = (userName) => {
-    if (testUserName(userName)) {
-      $startRecordBtnTooltip.attr(
-        'data-original-title',
-        'Please validate any error message before proceeding'
-      );
-    } else {
-      $startRecordBtnTooltip.attr(
-        'data-original-title',
-        'Please agree to the Terms and Conditions before proceeding'
-      );
-    }
-  };
-
   let langTop;
-  document.getElementById('languageTop').addEventListener('change', (e) => {
+  $('#languageTop').on('change', (e) => {
     langTop = e.target.value;
     const $toggleButton = $('#start_recording');
     $toggleButton.removeAttr('disabled');
   });
 
-  document.getElementById('start_recording').addEventListener('click', () => {
+  $('#start_recording').on('click', () => {
     sentenceLanguage = langTop;
   });
 
   let languageBottom = defaultLang;
-  document.getElementById('language').addEventListener('change', (e) => {
+  $('#language').on('change', (e) => {
     languageBottom = e.target.value;
     updateLanguage(languageBottom);
+    updateLanguageInButton(languageBottom);
     updateGraph(languageBottom);
   });
 
-  document.getElementById('start-record').addEventListener('click', () => {
+  $('#start-record').on('click', () => {
     sentenceLanguage = languageBottom;
   });
 
-  setStartRecordBtnToolTipContent($userName.val().trim());
+  setStartRecordBtnToolTipContent(
+    $userName.val().trim(),
+    $startRecordBtnTooltip
+  );
   $tncCheckbox.change(function () {
     const userNameValue = $userName.val().trim();
     if (this.checked && !testUserName(userNameValue)) {
       $startRecordBtn.removeAttr('disabled').removeClass('point-none');
       $startRecordBtnTooltip.tooltip('disable');
     } else {
-      setStartRecordBtnToolTipContent(userNameValue);
+      setStartRecordBtnToolTipContent(userNameValue, $startRecordBtnTooltip);
       $startRecordBtn.prop('disabled', 'true').addClass('point-none');
       $startRecordBtnTooltip.tooltip('enable');
     }
   });
 
-  $userName.on('input focus', validateUserName);
+  $userName.on('input focus', () => {
+    validateUserName($userName, $userNameError, $tncCheckbox);
+    setUserNameTooltip($userName);
+  });
 
   $startRecordBtn.on('click', () => {
     if ($tncCheckbox.prop('checked')) {
@@ -159,72 +232,29 @@ $(document).ready(function () {
   });
 
   $('#userModal').on('shown.bs.modal', function () {
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      const selectedGender = document.querySelector(
-        'input[name = "gender"]:checked'
-      );
-      if (selectedGender) selectedGender.checked = false;
-      age.selectedIndex = 0;
-      motherTongue.selectedIndex = 0;
-      $userName[0].value = '';
+    $('#resetBtn').on('click', resetSpeakerDetails);
+    $userName.tooltip({
+      container: 'body',
+      placement: screen.availWidth > 500 ? 'right' : 'auto',
+      trigger: 'focus',
     });
+    setUserNameTooltip($userName);
   });
 
+  updateLanguageInButton(defaultLang);
   updateLanguage(defaultLang);
+  buildGraphs(defaultLang);
 });
 
-function updateLanguageInButton(lang) {
-  document.getElementById(
-    'start-record'
-  ).innerText = `START RECORDING IN ${lang.toUpperCase()}`;
-}
-
-function calculateTime(totalSentence) {
-  const totalSeconds = totalSentence * 6;
-  const hours = Math.floor(totalSeconds / 3600);
-  const remainingAfterHours = totalSeconds % 3600;
-  const minutes = Math.floor(remainingAfterHours / 60);
-  const seconds = remainingAfterHours % 60;
-  return {hours, minutes, seconds};
-}
-
-function updateLanguage(language) {
-  const $speakersData = $('#speaker-data');
-  const speakersDataKey = 'speakersData';
-  const $speakersDataLoader = $speakersData.find('#loader1,#loader2');
-  const $speakersDataSpeakerWrapper = $speakersData.find('#speakers-wrapper');
-  const $speakersDataSpeakerValue = $speakersData.find('#speaker-value');
-  const $speakersDataHoursWrapper = $speakersData.find('#hours-wrapper');
-  const $speakersDataHoursValue = $speakersData.find('#hour-value');
-  $speakersDataLoader.removeClass('d-none');
-  $speakersDataHoursWrapper.addClass('d-none');
-  $speakersDataSpeakerWrapper.addClass('d-none');
-  updateLanguageInButton(language);
-  fetch(`/getDetails/${language}`)
-    .then((data) => {
-      if (!data.ok) {
-        throw Error(data.statusText || 'HTTP error');
-      } else {
-        return data.json();
-      }
-    })
-    .then((data) => {
-      try {
-        const totalSentence = data.find((t) => t.index === 1).count;
-        const {hours, minutes, seconds} = calculateTime(totalSentence);
-        $speakersDataHoursValue.text(`${hours}h ${minutes}m ${seconds}s`);
-        $speakersDataSpeakerValue.text(data.find((t) => t.index === 0).count);
-        $speakersDataLoader.addClass('d-none');
-        $speakersDataHoursWrapper.removeClass('d-none');
-        $speakersDataSpeakerWrapper.removeClass('d-none');
-        localStorage.setItem(speakersDataKey, JSON.stringify(data));
-      } catch (error) {
-        console.log(error);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-}
-
-module.exports = {updateLanguageInButton, calculateTime};
+module.exports = {
+  updateLanguageInButton,
+  updateLanguage,
+  calculateTime,
+  testUserName,
+  fetchDetail,
+  validateUserName,
+  resetSpeakerDetails,
+  setUserNameTooltip,
+  setStartRecordBtnToolTipContent,
+  setSpeakerDetails,
+};
