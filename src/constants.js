@@ -31,7 +31,7 @@ const MOTHER_TONGUE = [
   'Telugu',
   'Urdu',
 ];
-const LANGUAGES = ['Hindi', 'Odia'];
+const LANGUAGES = ['Hindi'];
 const AGE_GROUP = [
   '',
   '00 - 13',

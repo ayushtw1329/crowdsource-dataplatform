@@ -27,7 +27,7 @@ function resetSpeakerDetails() {
 
 $(document).ready(function () {
     const speakerDetailsKey = 'speakerDetails';
-    const defaultLang = 'Odia';
+    const defaultLang = 'Hindi';
     const $startRecordBtn = $('#proceed-box');
     const $startRecordBtnTooltip = $startRecordBtn.parent();
     const genderRadios = document.querySelectorAll('input[name = "gender"]');
