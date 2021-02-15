@@ -94,5 +94,4 @@ workflows:
                 filters:
                   branches:
                     only:
-                      - master
-                      - release*
+                      - release1.*
