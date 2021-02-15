@@ -91,7 +91,7 @@ workflows:
                 sh_file: app_yaml_prod.sh
                 requires:
                   - approve_for_prod_deploy
-                filters:
-                  branches:
-                    only:
-                      - release1.*
+                # filters:
+                #   branches:
+                #     only:
+                #       - release1.*
