@@ -3,10 +3,7 @@ const {
     updateLanguageInButton,
     updateLanguage,
     calculateTime,
-    testUserName,
     fetchDetail,
-    validateUserName,
-    resetSpeakerDetails
 } = require('../assets/js/home');
 const {readFileSync} = require('fs');
 const {stringToHTML, flushPromises} = require('./utils');
@@ -55,85 +52,4 @@ describe('calculateTime', () => {
     test('should calculate time in hours,min and sec for given sentence count', () => {
         expect(calculateTime(27)).toEqual({hours: 0, minutes: 2, seconds: 42});
     });
-});
-
-describe('testUserName', () => {
-    test('should give true for given mobile number of 10-digits start from 6-9', () => {
-        expect(testUserName('9818181818')).toEqual(true);
-    });
-
-    test('should give false for given mobile number of less than 10-digits', () => {
-        expect(testUserName('981818181')).toEqual(false);
-    });
-
-    test('should give false for given mobile number of more than 10-digits', () => {
-        expect(testUserName('98181818188')).toEqual(false);
-    });
-
-    test('should give false for given mobile number of than 10-digits not start from 6-9', () => {
-        expect(testUserName('58181818188')).toEqual(false);
-    });
-
-    test('should give true for given emailId start with string followed by @<String>.<String>', () => {
-        expect(testUserName('abc@gmail.com')).toEqual(true);
-    });
-
-    test('should give true for given emailId with string followed by @<String>.<digits>', () => {
-        expect(testUserName('abc@gmail.123')).toEqual(true);
-    });
-
-    test('should give false for given emailId not having "@"', () => {
-        expect(testUserName('abcgmail.com')).toEqual(false);
-    });
-
-    test('should give false for given emailId not having "."', () => {
-        expect(testUserName('abc@gmailcom')).toEqual(false);
-    });
-});
-
-
-describe('validateUserName', () => {
-    test('should show username when username is valid', () => {
-        const $userName = $('#username');
-        $userName.val = () => "abc@gmail.com";
-        const $userNameError = $userName.next();
-        const $tncCheckbox = $('#tnc');
-        validateUserName($userName, $userNameError, $tncCheckbox);
-
-        expect($userName.hasClass('is-invalid')).toEqual(true);
-        expect($userNameError.hasClass('d-none')).toEqual(false);
-    });
-
-    test('should show error when username is not valid', () => {
-        const $userName = $('#username');
-        const $userNameError = $userName.next();
-        const $tncCheckbox = $('#tnc');
-        validateUserName($userName, $userNameError, $tncCheckbox);
-
-        expect($userName.hasClass('is-invalid')).toEqual(false);
-        expect($userNameError.hasClass('d-none')).toEqual(true);
-    });
-});
-
-describe('Reset Speaker Details', () => {
-    test('should reset all details from popup', () => {
-        const $username = $('#username');
-        const age = document.getElementById('age');
-        const motherTongue = document.getElementById('mother-tongue');
-        const gender = document.querySelectorAll(
-            'input[name = "gender"]'
-        );
-        age.selectedIndex = 1;
-        motherTongue.selectedIndex = 1;
-        gender[0].checked = true;
-        $username.val('testName')
-        resetSpeakerDetails();
-        const selectedGender = document.querySelector(
-            'input[name = "gender"]:checked'
-        );
-        expect($username.val()).toBe('')
-        expect(age.selectedIndex).toBe(0)
-        expect(motherTongue.selectedIndex).toBe(0)
-        expect(selectedGender).toBeNull()
-    })
 });

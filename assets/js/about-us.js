@@ -1,5 +1,4 @@
-const {updateGraph, buildGraphs} = require('./draw-chart');
-const {setUserNameTooltip, testUserName, resetSpeakerDetails, validateUserName, setStartRecordBtnToolTipContent} = require('./speakerDetails');
+const {validateUserName, testUserName, resetSpeakerDetails,setUserNameTooltip,setStartRecordBtnToolTipContent} = require('./speakerDetails');
 
 $(document).ready(function () {
     const speakerDetailsKey = 'speakerDetails';
@@ -65,18 +64,6 @@ $(document).ready(function () {
         sentenceLanguage = langTop;
     });
 
-    let languageBottom = defaultLang;
-    $('#language').on('change', (e) => {
-        languageBottom = e.target.value;
-        updateLanguage(languageBottom);
-        updateLanguageInButton(languageBottom);
-        updateGraph(languageBottom);
-    });
-
-    $('#start-record').on('click', () => {
-        sentenceLanguage = languageBottom;
-    });
-
     setStartRecordBtnToolTipContent($userName.val().trim(), $startRecordBtnTooltip);
     $tncCheckbox.change(function () {
         const userNameValue = $userName.val().trim();
@@ -126,74 +113,4 @@ $(document).ready(function () {
 
         setUserNameTooltip($userName);
     });
-
-    updateLanguageInButton(defaultLang);
-    updateLanguage(defaultLang);
-    buildGraphs(defaultLang);
 });
-
-
-
-function updateLanguageInButton(lang) {
-    document.getElementById(
-        'start-record'
-    ).innerText = `START RECORDING IN ${lang.toUpperCase()}`;
-}
-
-function calculateTime(totalSentence) {
-    const totalSeconds = totalSentence * 6;
-    const hours = Math.floor(totalSeconds / 3600);
-    const remainingAfterHours = totalSeconds % 3600;
-    const minutes = Math.floor(remainingAfterHours / 60);
-    const seconds = remainingAfterHours % 60;
-    return {hours, minutes, seconds};
-}
-
-const fetchDetail = (language) => {
-    return fetch(`/getDetails/${language}`).then((data) => {
-        if (!data.ok) {
-            throw Error(data.statusText || 'HTTP error');
-        } else {
-            return Promise.resolve(data.json());
-        }
-    });
-};
-
-function updateLanguage(language) {
-    const $speakersData = $('#speaker-data');
-    const $speakersDataLoader = $speakersData.find('#loader1,#loader2');
-    const $speakersDataSpeakerWrapper = $('#speakers-wrapper');
-    const $speakersDataSpeakerValue = $('#speaker-value');
-    const $speakersDataHoursWrapper = $('#hours-wrapper');
-    const $speakersDataHoursValue = $('#hour-value');
-    $speakersDataLoader.removeClass('d-none');
-    $speakersDataHoursWrapper.addClass('d-none');
-    $speakersDataSpeakerWrapper.addClass('d-none');
-
-    fetchDetail(language)
-        .then((data) => {
-            try {
-                const totalSentence = data.find((t) => t.index === 1).count;
-                const {hours, minutes, seconds} = calculateTime(totalSentence);
-                $speakersDataHoursValue.text(`${hours}h ${minutes}m ${seconds}s`);
-                $speakersDataSpeakerValue.text(data.find((t) => t.index === 0).count);
-
-                $speakersDataLoader.addClass('d-none');
-                $speakersDataHoursWrapper.removeClass('d-none');
-                $speakersDataSpeakerWrapper.removeClass('d-none');
-                localStorage.setItem('speakersData', JSON.stringify(data));
-            } catch (error) {
-                console.log(error);
-            }
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-}
-
-module.exports = {
-    updateLanguageInButton,
-    updateLanguage,
-    calculateTime,
-    fetchDetail,
-};

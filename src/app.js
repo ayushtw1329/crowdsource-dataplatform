@@ -111,7 +111,7 @@ router.get('/getAllInfo/:language', async function (req, res) {
 });
 
 router.get('/about-us', function (req, res) {
-  res.render('about-us.ejs');
+  res.render('about-us.ejs',{MOTHER_TONGUE, LANGUAGES});
 });
 router.get('/terms-and-conditions', function (req, res) {
   res.render('terms-and-conditions.ejs');
