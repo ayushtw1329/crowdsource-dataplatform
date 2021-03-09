@@ -1,4 +1,4 @@
-const {setPageContentHeight, toggleFooterPosition, fetchLocationInfo} = require('./utils')
+const { setPageContentHeight, toggleFooterPosition, fetchLocationInfo } = require('./utils')
 
 const speakerDetailsKey = 'speakerDetails';
 const sentencesKey = 'sentences';
@@ -115,7 +115,7 @@ const initialize = () => {
             'Just few more steps to go!',
             'Yay! Done & Dusted!'
         ];
-    }    
+    }
     else if (sentences.length == 1) {
         progressMessages = [
             'Let’s get started',
@@ -173,7 +173,7 @@ const initialize = () => {
         $timeGraphBar.height(currentTimeGraphHeight + 'em');
     };
     const notyf = new Notyf({
-        position: {x: 'center', y: 'top'},
+        position: { x: 'center', y: 'top' },
         types: [
             {
                 type: 'success',
@@ -213,7 +213,7 @@ const initialize = () => {
 
     $startRecordBtn.add($reRecordBtn).on('click', () => {
         navigator.mediaDevices
-            .getUserMedia({audio: true, video: false})
+            .getUserMedia({ audio: true, video: false })
             .then((stream) => {
                 $getStarted.hide();
                 $startRecordRow.addClass('d-none');
@@ -248,7 +248,7 @@ const initialize = () => {
                 //automatically click stop button after 30 seconds
                 cleartTimeoutKey = setTimeout(() => {
                     $stopRecordBtn.click();
-                }, 30 * 1000);
+                }, 21 * 1000);
             })
             .catch((err) => {
                 console.log(err);
@@ -324,8 +324,8 @@ const initialize = () => {
             );
             setProgressBar(currentIndex);
             const sentencesObj = JSON.parse(localStorage.getItem(sentencesKey));
-            Object.assign(sentencesObj, {sentences:[]});
-            localStorage.setItem(sentencesKey, JSON.stringify(sentencesObj) );
+            Object.assign(sentencesObj, { sentences: [] });
+            localStorage.setItem(sentencesKey, JSON.stringify(sentencesObj));
             localStorage.setItem(currentIndexKey, currentIndex);
             notyf.success(
                 'Congratulations!!! You have completed this batch of sentences'
@@ -501,7 +501,7 @@ $(document).ready(() => {
                     }
                 })
                 .then((sentenceData) => {
-                    if(!isExistingUser){
+                    if (!isExistingUser) {
                         $instructionModal.modal('show');
                     } else {
                         $pageContent.removeClass('d-none');
@@ -535,4 +535,4 @@ $(document).ready(() => {
     }
 });
 
-module.exports = {getCurrentIndex, getSkipCount, getValue, setCurrentSentenceIndex, setTotalSentenceIndex}
+module.exports = { getCurrentIndex, getSkipCount, getValue, setCurrentSentenceIndex, setTotalSentenceIndex }
