@@ -403,3 +403,25 @@ audio {
   border-left: 0 solid transparent;
   border-right: 1.275em solid transparent;
 }
+
+.test-mic-speakers-container {
+  padding: 1rem 2rem 1rem;
+}
+.test-mic-speaker-button {
+  padding: 0 3rem;
+}
+.test-mic-speaker-button button {
+  border: 1px solid #959595;
+  color: #959595;
+}
+.test-mic-speaker-button svg {
+  margin-right: 5px;
+  margin-bottom: 2px;
+}
+.test-mic-speakers-details {
+  background-color: #F8F9FA;
+}
+.test-mic-speakers-details p {
+  color: #959595;
+  font-size: 0.85rem;
+}

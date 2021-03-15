@@ -6,6 +6,8 @@ const currentIndexKey = 'currentIndex';
 const skipCountKey = 'skipCount';
 const countKey = 'count';
 
+const $testMicBtn = $('#test-mic-button');
+
 function getValue(number, maxValue) {
     return number < 0
         ? 0
@@ -49,6 +51,168 @@ const startTimer = (seconds, display) => {
     }, 1000);
 }
 
+function flattenArray(channelBuffer, recordingLength) {
+    let result = new Float32Array(recordingLength);
+    let offset = 0;
+    for (let i = 0; i < channelBuffer.length; i++) {
+        let buffer = channelBuffer[i];
+        result.set(buffer, offset);
+        offset += buffer.length;
+    }
+    return result;
+}
+
+function writeUTFBytes(view, offset, string) {
+    for (var i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+    }
+}
+
+function generateWavBlob(finalBuffer, defaultSampleRate) {
+    let buffer = new ArrayBuffer(44 + finalBuffer.length * 2);
+    let view = new DataView(buffer);
+
+    // RIFF chunk descriptor
+    writeUTFBytes(view, 0, 'RIFF');
+    view.setUint32(4, 44 + finalBuffer.length * 2, true);
+    writeUTFBytes(view, 8, 'WAVE');
+    // FMT sub-chunk
+    writeUTFBytes(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // chunkSize
+    view.setUint16(20, 1, true); // wFormatTag
+    view.setUint16(22, 1, true); // wChannels:mono(1 channel) / stereo (2 channels)
+    view.setUint32(24, defaultSampleRate, true); // dwSamplesPerSec
+    view.setUint32(28, defaultSampleRate * 2, true); // dwAvgBytesPerSec
+    view.setUint16(32, 4, true); // wBlockAlign
+    view.setUint16(34, 16, true); // wBitsPerSample
+    // data sub-chunk
+    writeUTFBytes(view, 36, 'data');
+    view.setUint32(40, finalBuffer.length * 2, true);
+
+    // write the PCM samples
+    let index = 44;
+    let volume = 1;
+    for (var i = 0; i < finalBuffer.length; i++) {
+        view.setInt16(index, finalBuffer[i] * (0x7FFF * volume), true);
+        index += 2;
+    }
+
+    // our final blob
+    let blob = new Blob([view], {
+        type: 'audio/wav'
+    });
+    return blob;
+}
+
+let audioData = [];
+let recordingLength = 0;
+
+const getMediaRecorder = () => {
+    let stream = null,
+        microphone = null,
+        javascriptNode = null,
+        sampleRate = 44100;
+    let max_level_L = 0;
+    let old_level_L = 0;
+    let cnvs = document.getElementById("mic-canvas");
+    let cnvs_cntxt = cnvs.getContext("2d");
+    // audioData = [];
+    // recordingLength = 0;
+    const start = () => {
+        let constraints = {
+            audio: true,
+            video: false
+        };
+        navigator.mediaDevices
+            .getUserMedia(constraints)
+            .then(function (stream) {
+                let audioContext = new AudioContext();
+                sampleRate = audioContext.sampleRate;
+                microphone = audioContext.createMediaStreamSource(stream);
+
+                javascriptNode = audioContext.createScriptProcessor(1024, 1, 1);
+
+                microphone.connect(javascriptNode);
+                javascriptNode.connect(audioContext.destination);
+                javascriptNode.onaudioprocess = function (event) {
+                    let inpt_L = event.inputBuffer.getChannelData(0);
+                    recordingLength += 1024;
+                    audioData.push(new Float32Array(inpt_L));
+
+                    let instant_L = 0.0;
+
+                    let sum_L = 0.0;
+                    for (let i = 0; i < inpt_L.length; ++i) {
+                        sum_L += inpt_L[i] * inpt_L[i];
+                    }
+                    instant_L = Math.sqrt(sum_L / inpt_L.length);
+                    max_level_L = Math.max(max_level_L, instant_L);
+                    instant_L = Math.max(instant_L, old_level_L - 0.008);
+                    old_level_L = instant_L;
+
+                    cnvs_cntxt.clearRect(0, 0, cnvs.width, cnvs.height);
+                    cnvs_cntxt.fillStyle = "blue";
+                    cnvs_cntxt.fillRect(
+                        10,
+                        10,
+                        (cnvs.width - 20) * (instant_L / max_level_L),
+                        cnvs.height - 20
+                    );
+                };
+            })
+            .catch(function (err) {
+                console.log(e);
+            });
+    }
+
+    const stop = () => {
+        if (microphone !== null)
+            microphone.disconnect();
+        if (javascriptNode !== null)
+            javascriptNode.disconnect();
+        let finalBuffer = flattenArray(audioData, recordingLength);
+        let audioBlob = generateWavBlob(finalBuffer, sampleRate);
+        if (audioBlob !== null) {
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            const play = () => {
+                audio.play();
+            };
+            return ({
+                audioBlob,
+                audioUrl,
+                recordingLength,
+                play
+            });
+        } else {
+            console.log("No blob present")
+            return null;
+        }
+    }
+    return {
+        start,
+        stop
+    };
+}
+
+const testMic = (btnDataAttr) => {
+    const $micSvg = $('#mic-svg');
+    const recorder = getMediaRecorder();
+    if (btnDataAttr === 'test-mic') {
+        $micSvg.addClass('d-none');
+        $testMicBtn.attr('data-value', 'recording');
+        $testMicBtn.text('Recording');
+        recorder.start();
+    } else if (btnDataAttr === 'recording') {
+        console.log('recording done!');
+        const audio = recorder.stop();
+        audio.play();
+        $testMicBtn.attr('data-value', 'playing');
+        $testMicBtn.text('Playing');
+        console.log(audio.recordingLength);
+    }
+}
+
 const initialize = () => {
     const sentences = crowdSource.sentences;
     const $startRecordBtn = $('#startRecord');
@@ -86,6 +250,11 @@ const initialize = () => {
     //     'Nine dead, one more to go!',
     //     'Yay! Done & Dusted!',
     // ];
+
+    $testMicBtn.on('click', (e) => {
+        const btnDataAttr = e.target.getAttribute('data-value');
+        testMic(btnDataAttr);
+    });
 
     let progressMessages = [
         'Let’s get started',
