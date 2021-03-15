@@ -85,7 +85,9 @@ workflows:
              - node/test
           filters:
             branches:
-              only: master
+              only: 
+                - master
+                - verify
 
       - aws-ecr/build-and-push-image:
           name: push_dev_image
@@ -107,7 +109,10 @@ workflows:
           type: approval
           requires:
             - dev_deployment_eks
-
+          filters:
+            branches:
+              only: 
+                - master
       - db_migrate_aws:
           name: migrate_test_aws
           db_name: ${TEST_DB_NAME}
