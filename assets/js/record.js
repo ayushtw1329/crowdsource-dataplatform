@@ -175,13 +175,19 @@ const getMediaRecorder = () => {
         if (audioBlob !== null) {
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
+            const getDuration = () => {
+                audio.onloadedmetadata = function() {
+                    console.log('in func', audio.duration);
+                    return audio.duration;
+                };
+            }
             const play = () => {
                 audio.play();
             };
             return ({
                 audioBlob,
                 audioUrl,
-                recordingLength,
+                getDuration,
                 play
             });
         } else {
@@ -204,12 +210,13 @@ const testMic = (btnDataAttr) => {
         $testMicBtn.text('Recording');
         recorder.start();
     } else if (btnDataAttr === 'recording') {
-        console.log('recording done!');
         const audio = recorder.stop();
         audio.play();
         $testMicBtn.attr('data-value', 'playing');
         $testMicBtn.text('Playing');
-        console.log(audio.recordingLength);
+        console.log('getDuration', audio.getDuration());
+        // console.log('btnattr', audio.audioDuration);
+        // console.log('btnattr typeof', typeof audio.audioDuration);
     }
 }
 
@@ -230,7 +237,7 @@ const initialize = () => {
     const $progressBar = $('.progress-bar');
     const $pageContent = $('#page-content');
     const $audioSmallError = $('#audio-small-error');
-    const $autoStopWarning = document.getElementById("count-down")
+    const $autoStopWarning = document.getElementById("count-down");
     const totalItems = sentences.length;
     let currentIndex =
         getCurrentIndex(totalItems - 1);
