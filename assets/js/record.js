@@ -5,6 +5,8 @@ const sentencesKey = 'sentences';
 const currentIndexKey = 'currentIndex';
 const skipCountKey = 'skipCount';
 const countKey = 'count';
+let cnvs;
+let cnvs_cntxt;
 
 const $testMicBtn = $('#test-mic-button');
 
@@ -104,6 +106,14 @@ function generateWavBlob(finalBuffer, defaultSampleRate) {
     return blob;
 }
 
+const resetMicButton = () => {
+    $testMicBtn.text('Test Mic');
+    $('#mic-svg').removeClass('d-none');
+    $testMicBtn.attr('data-value', 'test-mic');
+
+    cnvs_cntxt.clearRect(0, 0, cnvs.width, cnvs.height);
+}
+
 let audioData = [];
 let recordingLength = 0;
 
@@ -114,8 +124,8 @@ const getMediaRecorder = () => {
         sampleRate = 44100;
     let max_level_L = 0;
     let old_level_L = 0;
-    let cnvs = document.getElementById("mic-canvas");
-    let cnvs_cntxt = cnvs.getContext("2d");
+    // let cnvs = document.getElementById("mic-canvas");
+    // let cnvs_cntxt = cnvs.getContext("2d");
     // audioData = [];
     // recordingLength = 0;
     const start = () => {
@@ -175,19 +185,21 @@ const getMediaRecorder = () => {
         if (audioBlob !== null) {
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
-            const getDuration = () => {
-                audio.onloadedmetadata = function() {
-                    console.log('in func', audio.duration);
-                    return audio.duration;
-                };
-            }
+            console.log(audio);
+            audio.onloadedmetadata = function() {
+                console.log(audio.duration);
+                const audioDuration = Math.ceil(audio.duration*1000);
+                console.log('in func', audioDuration);
+                setTimeout(() => {
+                    resetMicButton();
+                }, audioDuration);
+            };
             const play = () => {
                 audio.play();
             };
             return ({
                 audioBlob,
                 audioUrl,
-                getDuration,
                 play
             });
         } else {
@@ -205,6 +217,8 @@ const testMic = (btnDataAttr) => {
     const $micSvg = $('#mic-svg');
     const recorder = getMediaRecorder();
     if (btnDataAttr === 'test-mic') {
+        audioData = [];
+        recordingLength = 0;
         $micSvg.addClass('d-none');
         $testMicBtn.attr('data-value', 'recording');
         $testMicBtn.text('Recording');
@@ -214,9 +228,6 @@ const testMic = (btnDataAttr) => {
         audio.play();
         $testMicBtn.attr('data-value', 'playing');
         $testMicBtn.text('Playing');
-        console.log('getDuration', audio.getDuration());
-        // console.log('btnattr', audio.audioDuration);
-        // console.log('btnattr typeof', typeof audio.audioDuration);
     }
 }
 
@@ -609,6 +620,8 @@ $(document).ready(() => {
     const $navUser = $('#nav-user');
     const $navUserName = $navUser.find('#nav-username');
     const contributionLanguage = localStorage.getItem('contributionLanguage');
+    cnvs = document.getElementById("mic-canvas");
+    cnvs_cntxt = cnvs.getContext("2d");
     if(contributionLanguage) {
         updateLocaleLanguagesDropdown(contributionLanguage);
     }
