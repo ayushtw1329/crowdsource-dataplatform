@@ -176,7 +176,7 @@ const getMediaRecorder = () => {
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
             const getDuration = () => {
-                audio.onloadedmetadata = function() {
+                audio.onloadedmetadata = function () {
                     console.log('in func', audio.duration);
                     return audio.duration;
                 };
@@ -262,6 +262,23 @@ const initialize = () => {
         const btnDataAttr = e.target.getAttribute('data-value');
         testMic(btnDataAttr);
     });
+
+    $('#play-speaker').on('click', (e) => {
+        playSpeaker();
+        // let audio = document.getElementById("test-speaker-hidden");
+        // audio.play();
+        // var context = new AudioContext();
+        // var src = context.createMediaElementSource(audio);
+        // var analyser = context.createAnalyser();
+
+        // let canvas = document.getElementById("speaker-canvas");
+
+        // src.connect(analyser);
+        // analyser.connect(context.destination);
+
+        // visualize(canvas, analyser)
+    });
+
 
     let progressMessages = [
         'Let’s get started',
@@ -378,7 +395,7 @@ const initialize = () => {
             .then((stream) => {
                 $getStarted.hide();
                 $startRecordBtn.addClass('d-none');
-                $skipBtn.prop('disabled',true);
+                $skipBtn.prop('disabled', true);
                 $startRecordRow.removeClass('d-none');
                 $stopRecordBtn.removeClass('d-none');
                 $recordingRow.removeClass('d-none');
@@ -445,7 +462,7 @@ const initialize = () => {
         $startRecordRow.addClass('d-none');
         $stopRecordBtn.addClass('d-none');
         $nextBtn.removeClass('d-none');
-        $skipBtn.prop('disabled',false);
+        $skipBtn.prop('disabled', false);
         $reRecordBtn.removeClass('d-none');
         $recordingSign.addClass('d-none');
         $recordingRow.addClass('d-none');
@@ -599,7 +616,61 @@ const initialize = () => {
         draw();
     }
 };
+function playSpeaker() {
+    let audio = document.getElementById("test-speaker-hidden");
+    audio.play();
+    let context = new AudioContext();
+    let src = context.createMediaElementSource(audio);
+    let analyser = context.createAnalyser();
 
+    let canvas = document.getElementById("speaker-canvas");
+    // canvas.width = window.innerWidth;
+    // canvas.height = window.innerHeight;
+    let cnvs_cntxt = canvas.getContext("2d");
+
+    src.connect(analyser);
+    analyser.connect(context.destination);
+
+    // visualize(canvas, analyser)
+
+    // analyser.fftSize = 2048;
+
+    let bufferLength = analyser.frequencyBinCount;
+    console.log(bufferLength);
+    let max_level_L = 0;
+    let old_level_L = 0;
+    let dataArray = new Uint8Array(bufferLength);
+
+    function renderFrame() {
+        requestAnimationFrame(renderFrame);
+
+        analyser.getByteFrequencyData(dataArray);
+
+        let instant_L = 0.0;
+
+        let sum_L = 0.0;
+        for (let i = 0; i < dataArray.length; ++i) {
+            sum_L += dataArray[i] * dataArray[i];
+        }
+        instant_L = Math.sqrt(sum_L / dataArray.length);
+        max_level_L = Math.max(max_level_L, instant_L);
+        instant_L = Math.max(instant_L, old_level_L - 0.008);
+        old_level_L = instant_L;
+
+        cnvs_cntxt.clearRect(0, 0, canvas.width, canvas.height);
+        cnvs_cntxt.fillStyle = "blue";
+        cnvs_cntxt.fillRect(
+            10,
+            10,
+            (canvas.width - 20) * (instant_L / max_level_L),
+            canvas.height - 20
+        );
+
+    }
+
+    audio.play();
+    renderFrame();
+}
 $(document).ready(() => {
     window.crowdSource = {};
     const $instructionModal = $('#instructionsModal');
@@ -609,7 +680,7 @@ $(document).ready(() => {
     const $navUser = $('#nav-user');
     const $navUserName = $navUser.find('#nav-username');
     const contributionLanguage = localStorage.getItem('contributionLanguage');
-    if(contributionLanguage) {
+    if (contributionLanguage) {
         updateLocaleLanguagesDropdown(contributionLanguage);
     }
     fetchLocationInfo().then(res => {
