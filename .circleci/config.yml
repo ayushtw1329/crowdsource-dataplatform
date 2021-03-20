@@ -109,19 +109,17 @@ jobs:
 workflows:
     build_test_deploy:
         jobs:
-          - node/test:
-                version: "13.4"
-          - db_migrate:
-               name: migrate_dev
-               db_name: ${DEV_DB_NAME}
-               requires:
-                 - node/test
+          # - node/test:
+          #       version: "13.4"
+          # - db_migrate:
+          #      name: migrate_dev
+          #      db_name: ${DEV_DB_NAME}
+          #      requires:
+          #        - node/test
           - deploy:
                name: deploy_dev
                env_name: dev
                sh_file: app_yaml_dev.sh
-               requires:
-                 - migrate_dev
           - approve_to_deploy:
                 name: approve_test
                 type: approval
