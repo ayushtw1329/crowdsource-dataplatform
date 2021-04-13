@@ -158,7 +158,7 @@ const checkNextMilestoneQuery = `select grade, reward_milestone.milestone, id fr
 (select milestone,reward_catalogue_id as rid from reward_milestones where milestone > $1 and milestone >= \
   (select milestone from reward_milestones, reward_catalogue where \
   id=reward_catalogue_id and grade is not null order by milestone limit 1) \
-and language = $2 order by milestone limit 1) \
+and LOWER(language) = LOWER($2) order by milestone limit 1) \
 as reward_milestone where id=reward_milestone.rid and grade is not null`;
 
 const findRewardInfo = 'select reward_catalogue_id, reward_catalogue.grade, generated_badge_id from rewards inner join reward_catalogue \
