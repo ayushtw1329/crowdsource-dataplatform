@@ -288,7 +288,7 @@ router.get('/location-info', (req, res) => {
         res.sendStatus(500);
     })
 });
-
+// locale --sunny
 app.get('/get-locale-strings/:locale', function (req, res) {
     let locale = req.params.locale;
     fs.readFile(`${__dirname}/../locales/${locale}.json`, (err, body) => {
